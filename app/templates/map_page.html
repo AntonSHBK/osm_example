@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>OSM Сервис</title>
+    <style>
+        body { font-family: sans-serif; margin: 20px; }
+        .tabs { display: flex; margin-bottom: 1em; flex-wrap: wrap; }
+        .tab { padding: 10px 20px; border: 1px solid #ccc; border-bottom: none; cursor: pointer; }
+        .tab.active { background: #f0f0f0; font-weight: bold; }
+        .tab-content { border: 1px solid #ccc; padding: 20px; display: none; }
+        .tab-content.active { display: block; }
+        input[type="text"], input[type="number"] { width: 300px; padding: 5px; margin: 5px 0; }
+        select, button { padding: 6px 10px; margin-top: 8px; }
+        #leafletMap { height: 600px; border: 1px solid #ccc; margin-top: 10px; }
+    </style>
+    <script>
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(div => div.classList.remove('active'));
+            document.getElementById("tab-" + tabName).classList.add('active');
+            document.getElementById("content-" + tabName).classList.add('active');
+        }
+    </script>
+</head>
+<body>
+
+<h1>OSM Сервис</h1>
+
+<div class="tabs">
+    <div class="tab active" id="tab-geocode" onclick="switchTab('geocode')">Геокодирование</div>
+    <div class="tab" id="tab-reverse" onclick="switchTab('reverse')">Обратное геокодирование</div>
+    <div class="tab" id="tab-interactive" onclick="switchTab('interactive')">Маршруты и карта</div>
+</div>
+
+<!-- Геокодирование -->
+<div class="tab-content active" id="content-geocode">
+    <form method="get" action="/geocode">
+        <label>Адрес:</label><br>
+        <input type="text" name="q" placeholder="Например: Москва, Кремль" required><br>
+        <button type="submit">Получить координаты</button>
+    </form>
+</div>
+
+<!-- Обратное геокодирование -->
+<div class="tab-content" id="content-reverse">
+    <form method="get" action="/reverse-geocode">
+        <label>Широта:</label><br>
+        <input type="number" step="any" name="lat" required><br>
+        <label>Долгота:</label><br>
+        <input type="number" step="any" name="lon" required><br>
+        <button type="submit">Получить адрес</button>
+    </form>
+</div>
+
+<!-- Маршруты и карта -->
+<div class="tab-content" id="content-interactive">
+    <label><strong>Выберите способ построения маршрута:</strong></label><br>
+    <select id="methodSelector" onchange="switchMethod()">
+        <option value="1">1 — Клик по карте (координаты)</option>
+        <option value="2">2 — Ввод названий объектов</option>
+    </select>
+    <hr>
+
+    <!-- === Форма 1: клик по карте (инфо или форма координат) -->
+    <div id="method-1">
+        <form id="coordForm">
+            <label>Точка A (клик или введите вручную):</label><br>
+            <input type="number" step="any" id="from_lat" name="from_lat" required placeholder="Широта A"><br>
+            <input type="number" step="any" id="from_lon" name="from_lon" required placeholder="Долгота A"><br>
+    
+            <label>Точка B:</label><br>
+            <input type="number" step="any" id="to_lat" name="to_lat" required placeholder="Широта B"><br>
+            <input type="number" step="any" id="to_lon" name="to_lon" required placeholder="Долгота B"><br>
+    
+            <label>Тип маршрута:</label>
+            <select id="mode_click" name="mode">
+                <option value="car">Автомобиль</option>
+                <option value="foot">Пешком</option>
+            </select><br>
+    
+            <button type="submit">Построить маршрут</button>
+            <button type="button" onclick="resetLeafletMap()">Сбросить</button>
+        </form>
+    
+        <p><em>Кликните 2 раза на карте для автоматического заполнения точек A и B</em></p>
+    </div>
+
+    <!-- === Форма 2: по названиям -->
+    <div id="method-2" style="display: none;">
+        <form id="routeByNamesForm">
+            <label>Откуда:</label><br>
+            <input type="text" id="from_address" required><br>
+            <label>Куда:</label><br>
+            <input type="text" id="to_address" required><br>
+            <label>Тип маршрута:</label>
+            <select id="mode_select">
+                <option value="car">Автомобиль</option>
+                <option value="foot">Пешком</option>
+            </select><br>
+            <button type="submit">Построить</button>
+            <button type="button" onclick="resetLeafletMap()">Сбросить</button>
+        </form>
+    </div>
+
+    <hr>
+    <!-- === Единая интерактивная карта для всех способов === -->
+    <div id="leafletMap"></div>
+
+    <!-- Leaflet и JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="/static/js/route_map.js"></script>
+    <script>
+        function switchMethod() {
+            const selected = document.getElementById("methodSelector").value;
+            [1, 2, 3].forEach(i => {
+                document.getElementById("method-" + i).style.display = (i == selected) ? "block" : "none";
+            });
+        }
+    </script>
+</div>
+
+</body>
+</html>
