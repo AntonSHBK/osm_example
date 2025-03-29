@@ -159,9 +159,3 @@ http://127.0.0.1:8000/
   ```bash
   uvicorn app.main:app --reload
   ```
-
----
-
-## Лицензия
-
-MIT License
